@@ -297,6 +297,19 @@ func (b *BrowserPage) handleAddEntityToQueue() {
 		return
 	}
 
+	if currentIndex == 0 && b.currentDirectory.Parent != "" {
+		// [..] entry - add all
+		for _, entity := range b.currentDirectory.Entities {
+			if entity.IsDirectory {
+				b.addDirectoryToQueue(&entity)
+			} else {
+				b.ui.addSongToQueue(&entity)
+			}
+		}
+		b.ui.queuePage.UpdateQueue()
+		return
+	}
+
 	if currentIndex+1 < b.entityList.GetItemCount() {
 		b.entityList.SetCurrentItem(currentIndex + 1)
 	}
