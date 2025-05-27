@@ -34,6 +34,7 @@ type SubsonicConnection struct {
 	clientVersion string
 
 	logger         logger.LoggerInterface
+	albumCache map[string]SubsonicResponse
 	directoryCache map[string]SubsonicResponse
 	coverArts      map[string]image.Image
 }
@@ -44,6 +45,7 @@ func Init(logger logger.LoggerInterface) *SubsonicConnection {
 		clientVersion: "1.8.0",
 
 		logger:         logger,
+		albumCache: make(map[string]SubsonicResponse),
 		directoryCache: make(map[string]SubsonicResponse),
 		coverArts:      make(map[string]image.Image),
 	}
@@ -55,10 +57,12 @@ func (s *SubsonicConnection) SetClientInfo(name, version string) {
 }
 
 func (s *SubsonicConnection) ClearCache() {
+	s.albumCache = make(map[string]SubsonicResponse)
 	s.directoryCache = make(map[string]SubsonicResponse)
 }
 
 func (s *SubsonicConnection) RemoveCacheEntry(key string) {
+	delete(s.albumCache, key)
 	delete(s.directoryCache, key)
 }
 
@@ -336,11 +340,8 @@ func (connection *SubsonicConnection) GetArtist(id string) (*SubsonicResponse, e
 }
 
 func (connection *SubsonicConnection) GetAlbum(id string) (*SubsonicResponse, error) {
-	if cachedResponse, present := connection.directoryCache[id]; present {
-		// This is because Albums that were fetched as Directories aren't populated correctly
-		if cachedResponse.Album.Name != "" {
-			return &cachedResponse, nil
-		}
+	if cachedResponse, present := connection.albumCache[id]; present {
+		return &cachedResponse, nil
 	}
 
 	query := defaultQuery(connection)
@@ -353,7 +354,7 @@ func (connection *SubsonicConnection) GetAlbum(id string) (*SubsonicResponse, er
 
 	// on a sucessful request, cache the response
 	if resp.Status == "ok" {
-		connection.directoryCache[id] = *resp
+		connection.albumCache[id] = *resp
 	}
 
 	sort.Sort(resp.Directory.Entities)
