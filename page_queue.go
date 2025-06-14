@@ -94,6 +94,10 @@ func (ui *Ui) createQueuePage() *QueuePage {
 	queuePage.queueList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyDelete || event.Rune() == 'd' {
 			queuePage.handleDeleteFromQueue()
+		} else if event.Key() == tcell.KeyEnter {
+			// Remove previous entries, then play
+			queuePage.handleDeleteFromQueueUpToSelected()
+			ui.player.Play()
 		} else {
 			switch event.Rune() {
 			case 'y':
@@ -219,6 +223,21 @@ func (q *QueuePage) handleDeleteFromQueue() {
 	// remove the item from the queue
 	q.ui.player.DeleteQueueItem(currentIndex)
 	q.updateQueue()
+}
+
+// button handler
+func (q *QueuePage) handleDeleteFromQueueUpToSelected() {
+	currentIndex, err := q.getSelectedItem()
+	if err != nil {
+		return
+	}
+
+	// remove preceding items from the queue
+	for i := 0;  i < currentIndex; i++ {
+		q.ui.player.DeleteQueueItem(0)
+	}
+	q.updateQueue()
+	q.queueList.Select(0, 0)
 }
 
 // button handler

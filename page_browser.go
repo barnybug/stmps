@@ -87,7 +87,7 @@ func (ui *Ui) createBrowserPage(indexes *[]subsonic.SubsonicIndex) *BrowserPage 
 
 	// going right from the artist list should focus the album/song list
 	browserPage.artistList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyRight || event.Key() == tcell.KeyTab {
+		if event.Key() == tcell.KeyRight || event.Key() == tcell.KeyEnter || event.Key() == tcell.KeyTab {
 			ui.app.SetFocus(browserPage.entityList)
 			return nil
 		}
